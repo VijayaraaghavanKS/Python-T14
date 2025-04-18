@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Airports - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header d-md-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-building me-2"></i> Manage Airports</h1>
+            <p class="lead">View, add, edit, or delete airports</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="{{ url_for('routes.admin_add_airport') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Add Airport
+            </a>
+            <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>City</th>
+                            <th>Country</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if airports %}
+                            {% for airport in airports %}
+                            <tr>
+                                <td>{{ airport.code }}</td>
+                                <td>{{ airport.name }}</td>
+                                <td>{{ airport.city }}</td>
+                                <td>{{ airport.country }}</td>
+                                <td>
+                                    <a href="{{ url_for('routes.admin_edit_airport', airport_id=airport.id) }}" class="btn btn-sm btn-primary me-2">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form action="{{ url_for('routes.admin_delete_airport', airport_id=airport.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete {{ airport.code }}?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No airports found</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
