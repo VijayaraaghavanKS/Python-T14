@@ -796,6 +796,51 @@ def register():
 @login_required
 def profile():
     return render_template('profile.html')
+@routes_bp.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    try:
+        # Get form data
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        phone_number = request.form.get('phone_number')
+        date_of_birth = request.form.get('date_of_birth')
+        nationality = request.form.get('nationality')
+        address = request.form.get('address')
+        passport_number = request.form.get('passport_number')
+
+        # Validate required fields
+        if not first_name or not last_name:
+            flash('First name and last name are required', 'danger')
+            return redirect(url_for('routes.profile'))
+
+        # Update user information
+        current_user.first_name = first_name
+        current_user.last_name = last_name
+        current_user.phone_number = phone_number if phone_number else None
+        current_user.nationality = nationality if nationality else None
+        current_user.address = address if address else None
+        current_user.passport_number = passport_number if passport_number else None
+
+        # Handle date of birth
+        if date_of_birth:
+            try:
+                current_user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid date of birth format', 'danger')
+                return redirect(url_for('routes.profile'))
+        else:
+            current_user.date_of_birth = None
+
+        # Commit changes to the database
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating profile: {str(e)}', 'danger')
+
+    return redirect(url_for('routes.profile'))
 
 @routes_bp.route('/change_password', methods=['POST'])
 @login_required
