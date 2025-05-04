@@ -2,22 +2,32 @@ import json
 import re
 from urllib import parse
 from flask import session
-from openai import OpenAI
 from sqlalchemy import or_, func
 from models import Airport, Flight, Booking, Seat, User
 from datetime import datetime, timedelta
 import os
 
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-    timeout=30.0,  # Add timeout
-    default_headers={
-        "HTTP-Referer": "http://localhost:5000",  # Required by OpenRouter
-        "X-Title": "SkyWings Chatbot"             # Optional but recommended
-    }
-)
-# print(os.getenv("OPENROUTER_API_KEY"))
+def get_openai_client():
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        print("ERROR: OPENROUTER_API_KEY is missing or not set in environment variables.")
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+            timeout=30.0,
+            default_headers={
+                "HTTP-Referer": "http://localhost:5000",
+                "X-Title": "SkyWings Chatbot"
+            }
+        )
+        return client
+    except Exception as e:
+        print(f"Failed to create OpenAI client: {e}")
+        return None
+
 def get_database_snapshot(search_params=None):
     """Get a filtered snapshot of the database based on search parameters"""
     snapshot = {
@@ -210,7 +220,9 @@ def call_api_with_data(user_message, db_snapshot, chat_history):
     
     Current date: {datetime.now().strftime('%Y-%m-%d')}.
     """
-    
+    client = get_openai_client()
+    if not client:
+        return "Sorry, our AI assistant is temporarily unavailable due to a configuration issue. Please contact support or try again later."
     try:
         completion = client.chat.completions.create(
             model="deepseek/deepseek-chat-v3-0324:free",
